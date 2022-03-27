@@ -10,7 +10,7 @@
 #include <regex>
 using namespace std;
 
-#define FORMAT "%-15s %-10s %-10s %-10s %-10s %-10s %-s\n"
+#define FORMAT "%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
 
 string cmd_reg = "no", type_reg = "no", fname_reg = "no";
 bool is_filter_c = false, is_filter_t = false, is_filter_f = false;
@@ -111,8 +111,7 @@ void read_link(string type, struct pid_info info){
 			string tmp;
 			tmp.assign(buf);
 			if(strstr(buf, "deleted") != NULL){ // deleted!
-				info.type = "unknown";
-				info.name = tmp.substr(0, tmp.length()-10) + " (deleted)";
+				info.name = tmp.substr(0, tmp.length()-10);
 			}
 			else{
 				info.name = buf;
