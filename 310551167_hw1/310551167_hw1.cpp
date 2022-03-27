@@ -95,7 +95,7 @@ void read_link(string type, struct pid_info info){
 		stat(linkpath.c_str(), &s);
 		info.type = get_filetype(s);
 		info.node = to_string(s.st_ino);
-        info.name = linkpath;
+        info.name = buf;
 		
 		// from read_fd
 		if(strcmp(info.path.substr(info.path.length()-4, info.path.length()).c_str(), "/fd/") == 0){ 
@@ -132,6 +132,7 @@ void parse_map(struct pid_info info){
 	info.fd = "mem";
 	info.type = "REG";
     string str, dev;
+	bool afterheap = false; // set if pass through heap
     while (getline(mapfile, str))
     {
         ss << str;
@@ -139,15 +140,24 @@ void parse_map(struct pid_info info){
         ss.str("");
         ss.clear();
 
-        // cout << str << " | "<< offset << " | "<< dev<< " | " << info.node << " | "<< info.name << " | "<< endl;
-		// cout << stoi(info.node.c_str()) << endl;
+		if(!afterheap){ 
+			if(!strstr(info.name.c_str(), "[heap]")){ // if haven't reach heap (exe), continue
+				continue;
+			}
+			else{
+				afterheap = true; // heap -> start dump message
+				continue;
+			}
+		}
 
 		// inode = 0, non-first memory block -> skip
-        if (stoi(info.node.c_str()) == 0 || offset != "00000000")
+        if (stoi(info.node.c_str()) == 0 || offset != "00000000"){
             continue;
+		}
 		// heap -> skip
-		if (dev == "00:00")
+		if (dev == "00:00"){
 			continue;
+		}
 
 
         if(strstr(info.node.c_str(), "deleted") != NULL) // deleted! -> change fd, type
