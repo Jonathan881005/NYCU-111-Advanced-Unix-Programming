@@ -34,6 +34,8 @@ bool is_a_digit(char* str){
 	string s(str);
 	return s.find_first_not_of("0123456789") == string::npos;
 }
+
+// Extract a valid filetype
 string get_filetype(struct stat s){
 	if(S_ISREG(s.st_mode)) return "REG";
 	if(S_ISDIR(s.st_mode)) return "DIR";
@@ -43,6 +45,7 @@ string get_filetype(struct stat s){
 	return "unknown";
 }
 
+// Get a valid fd
 string get_special_fd(string str){
 	if(str == "cwd")
 		return "cwd";
@@ -54,6 +57,7 @@ string get_special_fd(string str){
 		return str;
 }
 
+// Apply filter on output
 void check_and_print(struct pid_info info){
 	regex cmd_re(".*(" + cmd_reg + ").*");
 	regex fname_re(".*(" + fname_reg + ").*");
@@ -74,7 +78,7 @@ void check_and_print(struct pid_info info){
 	return;
 }
 
-// Read cwd, exe, root  / fds
+// Read cwd, exe, root  / also fds
 void read_link(string type, struct pid_info info){
 
 	string linkpath = info.path + type;
@@ -110,7 +114,7 @@ void read_link(string type, struct pid_info info){
 
 			string tmp;
 			tmp.assign(buf);
-			if(strstr(buf, "deleted") != NULL){ // deleted!
+			if(strstr(buf, "deleted") != NULL){ // remove " (deleted)"
 				info.name = tmp.substr(0, tmp.length()-10);
 			}
 			else{
@@ -154,7 +158,6 @@ void parse_map(struct pid_info info){
         if (stoi(info.node.c_str()) == 0 || offset != "00000000"){
             continue;
 		}
-		// heap -> skip
 		if (dev == "00:00"){
 			continue;
 		}
@@ -238,7 +241,6 @@ void open_dirp(char* pid){
 	read_link("exe", info);
 	parse_map(info);
 	read_fd(info);
-	// read_fd()
 
 	// printf("%s %s %s\n", info.cmd.c_str(), info.pid.c_str(), info.user.c_str());
 }
