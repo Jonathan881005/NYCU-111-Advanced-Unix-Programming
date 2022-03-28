@@ -10,14 +10,9 @@
 #include <regex>
 using namespace std;
 
-#define PRINTFORMAT "%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\n"
-
 // for option filter
 string cmd_reg = "no", type_reg = "no", fname_reg = "no";
 bool is_filter_c = false, is_filter_t = false, is_filter_f = false;
-
-// for processing error
-bool pid_error = false;
 
 struct pid_info
 {
@@ -86,7 +81,7 @@ void check_and_print(struct pid_info info){
 		return;
 	}
 
-	printf(PRINTFORMAT, info.cmd.c_str(), info.pid.c_str(), info.user.c_str(), 
+	printf("%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\n", info.cmd.c_str(), info.pid.c_str(), info.user.c_str(), 
 					info.fd.c_str(), info.type.c_str(), info.node.c_str(), info.name.c_str());
 
 	return;
@@ -95,11 +90,6 @@ void check_and_print(struct pid_info info){
 // Read cwd, exe, root  / also fds
 void read_link(string type, struct pid_info info){
 
-	// for processing error
-	if(pid_error){
-		return;
-	}
-
 	string linkpath = info.path + type;
 	// printf("%s\n", linkpath.c_str());
 	char buf[1024];
@@ -107,17 +97,6 @@ void read_link(string type, struct pid_info info){
 
 	if(n < 0){ // read link error
 	// any file was accesible -> type = "unknown"
-
-		// // error when read fd -> skip fd
-		// if(strcmp(info.path.substr(info.path.length()-4, info.path.length()).c_str(), "/fd/") != 0){
-		// 	return;
-		// }
-
-		// // not EACCES error & not for fd -> skip pid
-		// if(errno != EACCES){
-		// 	pid_error = true;
-		// 	return;
-		// }
 		
 		info.fd = get_special_fd(type);
 		info.type = "unknown";
@@ -174,11 +153,6 @@ void read_link(string type, struct pid_info info){
 
 // Read all unique mapped file
 void parse_map(struct pid_info info){
-
-	// for processing error
-	if(pid_error){
-		return;
-	}
 
 	string map_path = info.path + "/maps";
 	ifstream mapfile(map_path);
@@ -254,7 +228,6 @@ void read_fd(struct pid_info info)
 }
 
 void open_dirp(char* pid){
-	pid_error = false;
 
 	// Read pid_infos, error -> skip
 	struct pid_info info;
@@ -327,7 +300,7 @@ int main(int argc, char *argv[]){
 	}
 
 	// Print first line
-	printf(PRINTFORMAT, "COMMAND", "PID", "USER", "FD", "TYPE", "NODE", "NAME");
+	printf("%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\t\t%s\n", "COMMAND", "PID", "USER", "FD", "TYPE", "NODE", "NAME");
 
 	// Traverse directory
   	DIR *dp = opendir("/proc");
